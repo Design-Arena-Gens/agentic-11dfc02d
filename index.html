@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Foto do Papa Atual</title>
+    <meta name="description" content="Foto do atual Papa (Papa Francisco), carregada automaticamente da Wikip?dia." />
+    <link rel="preconnect" href="https://en.wikipedia.org" crossorigin />
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+        background: #0b0b0c;
+        color: #e6e6e6;
+      }
+      .container {
+        min-height: 100dvh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        place-items: center;
+        gap: 1rem;
+        padding: 2rem 1rem 3rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      header h1 {
+        margin: 0.25rem 0 0.5rem;
+        font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+        text-align: center;
+      }
+      header p {
+        margin: 0;
+        opacity: 0.8;
+        text-align: center;
+        font-size: 0.95rem;
+      }
+      figure {
+        margin: 0;
+        display: grid;
+        gap: 0.5rem;
+        place-items: center;
+        width: 100%;
+      }
+      .photo-wrap {
+        width: min(100%, 720px);
+        aspect-ratio: 3 / 4;
+        border-radius: 16px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #222, #111);
+        border: 1px solid #2a2a2a;
+        display: grid;
+        place-items: center;
+      }
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .skeleton {
+        width: 70%;
+        height: 70%;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #1a1a1a 25%, #222 37%, #1a1a1a 63%);
+        background-size: 400% 100%;
+        animation: shimmer 1.2s infinite;
+      }
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      figcaption {
+        font-size: 0.9rem;
+        opacity: 0.85;
+        text-align: center;
+      }
+      footer {
+        opacity: 0.7;
+        font-size: 0.85rem;
+        text-align: center;
+      }
+      a { color: #7ec8ff; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .error { color: #ff8a8a; }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 1px, 1px);
+        white-space: nowrap;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Foto do Papa Atual</h1>
+        <p>Carregada automaticamente da Wikip?dia (Papa Francisco).</p>
+      </header>
+
+      <figure>
+        <div class="photo-wrap" id="photoWrap" aria-busy="true" aria-live="polite">
+          <div class="skeleton" id="placeholder" aria-hidden="true"></div>
+          <img id="popeImg" alt="Papa Francisco" hidden />
+        </div>
+        <figcaption id="caption">Fonte: Wikip?dia</figcaption>
+      </figure>
+
+      <footer>
+        <span>Imagem exibida para fins informativos. Direitos podem se aplicar.</span>
+      </footer>
+    </main>
+
+    <script>
+      (async function loadPopePhoto() {
+        const api = 'https://en.wikipedia.org/api/rest_v1/page/summary/Pope_Francis';
+        const imgEl = document.getElementById('popeImg');
+        const placeholder = document.getElementById('placeholder');
+        const wrap = document.getElementById('photoWrap');
+        const caption = document.getElementById('caption');
+        try {
+          const res = await fetch(api, { headers: { 'accept': 'application/json' } });
+          if (!res.ok) throw new Error('Falha ao obter imagem');
+          const data = await res.json();
+          const src = (data.originalimage && data.originalimage.source) || (data.thumbnail && data.thumbnail.source);
+          if (!src) throw new Error('Imagem n?o dispon?vel');
+          imgEl.src = src;
+          imgEl.onload = () => {
+            placeholder.remove();
+            imgEl.hidden = false;
+            wrap.setAttribute('aria-busy', 'false');
+            const title = data.title || 'Papa Francisco';
+            const desc = data.description ? ' ? ' + data.description : '';
+            caption.textContent = `${title}${desc}`;
+          };
+          imgEl.onerror = () => { throw new Error('Falha ao carregar imagem'); };
+        } catch (err) {
+          wrap.setAttribute('aria-busy', 'false');
+          placeholder.remove();
+          const error = document.createElement('div');
+          error.className = 'error';
+          error.textContent = 'N?o foi poss?vel carregar a foto agora.';
+          wrap.appendChild(error);
+        }
+      })();
+    </script>
+  </body>
+</html>
